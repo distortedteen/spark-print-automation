@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+*.db
+
+# Uploads folder contents
+uploads/*
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db

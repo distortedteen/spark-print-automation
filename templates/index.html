@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SPARK Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="admin-link">
+      <a href="/admin">Admin Login</a>
+    </div>
+
+    <img src="/static/NFSU_logo.png" alt="NFSU_logo" class="logo">
+    <h1>SPARK (Self-service Print Automation & Record-Keeping)</h1>
+    <h2>An Automated Printing System for NFSU-TC</h2>
+    <h3>Made for Students, Made by Students.</h3>
+
+    <form action="/print" method="post" enctype="multipart/form-data">
+
+      <!-- Student Details -->
+    <div class="form-section">
+      <label>Student Name</label>
+      <input type="text" name="student_name" required placeholder="Enter your full name">
+
+      <label>Course & Semester</label>
+      <select name="course" required>
+        <option value="">-- Select Course --</option>
+
+        <optgroup label="B.Sc.-M.Sc.">
+          <option>B.Sc.-M.Sc. Sem 1</option>
+          <option>B.Sc.-M.Sc. Sem 2</option>
+          <option>B.Sc.-M.Sc. Sem 3</option>
+          <option>B.Sc.-M.Sc. Sem 4</option>
+          <option>B.Sc.-M.Sc. Sem 5</option>
+          <option>B.Sc.-M.Sc. Sem 6</option>
+          <option>B.Sc.-M.Sc. Sem 7</option>
+          <option>B.Sc.-M.Sc. Sem 8</option>
+          <option>B.Sc.-M.Sc. Sem 9</option>
+          <option>B.Sc.-M.Sc. Sem 10</option>
+        </optgroup>
+
+        <optgroup label="B.Tech.-M.Tech.">
+          <option>B.Tech.-M.Tech. Sem 1</option>
+          <option>B.Tech.-M.Tech. Sem 2</option>
+          <option>B.Tech.-M.Tech. Sem 3</option>
+          <option>B.Tech.-M.Tech. Sem 4</option>
+          <option>B.Tech.-M.Tech. Sem 5</option>
+          <option>B.Tech.-M.Tech. Sem 6</option>
+          <option>B.Tech.-M.Tech. Sem 7</option>
+          <option>B.Tech.-M.Tech. Sem 8</option>
+          <option>B.Tech.-M.Tech. Sem 9</option>
+          <option>B.Tech.-M.Tech. Sem 10</option>
+        </optgroup>
+
+        <optgroup label="M.Sc.">
+          <option>M.Sc. Sem 1</option>
+          <option>M.Sc. Sem 2</option>
+          <option>M.Sc. Sem 3</option>
+          <option>M.Sc. Sem 4</option>
+        </optgroup>
+      </select>
+    </div>
+
+      <!-- File Upload -->
+    <div class="form-section">
+      <label>Choose PDF File</label>
+      <input type="file" id="file" name="file" accept="application/pdf" required>
+
+      <label>Copies</label>
+      <input type="number" id="copies" name="copies" value="1" min="1">
+
+      <label>Page range (optional)</label>
+      <input type="text" id="pages" name="pages" placeholder="e.g. 1-5">
+    </div>
+
+      <!-- Info -->
+      <div class="info-box">
+        Total pages in PDF: <strong><span id="totalPages">0</span></strong><br>
+        Pages to be printed: <strong><span id="printPages">0</span></strong>
+      </div>
+      
+    <div class="payment-section">
+      <div style="text-align:center; margin-top:20px;">
+        <h3>Scan to Pay</h3>
+
+        <a id="upiLink" href="#">
+          <img src="{{ url_for('static', filename='upi_qr.png') }}"
+              alt="UPI QR"
+              style="width:180px; cursor:pointer;">
+        </a>
+
+        <p style="font-size:14px; color:#555;">
+          Click QR to open UPI app directly
+        </p>
+      </div>
+
+      <!-- Cost -->
+      <div class="cost-box">
+        Estimated Cost: ₹<span id="cost">0</span>
+      </div>
+
+      <!-- Payment Notice -->
+      <div class="notice">
+        Please pay the above amount using the payment QR code placed above before collecting your printout.
+      </div>
+    </div>
+
+      <!-- Hidden fields to send calculated values to backend -->
+        <input type="hidden" id="pages_printed" name="pages_printed">
+        <input type="hidden" id="total_cost" name="total_cost">
+
+      <button type="submit">Print</button>
+
+    </form>
+  </div>
+
+<script>
+  const fileInput = document.getElementById("file");
+  const pagesInput = document.getElementById("pages");
+  const copiesInput = document.getElementById("copies");
+
+  const totalPagesSpan = document.getElementById("totalPages");
+  const printPagesSpan = document.getElementById("printPages");
+  const costSpan = document.getElementById("cost");
+
+  const pagesPrintedInput = document.getElementById("pages_printed");
+  const costInput = document.getElementById("total_cost");
+
+  let totalPages = 0;
+
+  fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file || file.type !== "application/pdf") return;
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(this.result);
+
+      pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+        totalPages = pdf.numPages;
+        totalPagesSpan.innerText = totalPages;
+        calculateCost();
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function calculateCost() {
+    let copies = parseInt(copiesInput.value) || 1;
+    let pagesText = pagesInput.value.trim();
+    let pagesToPrint = totalPages;
+
+    if (pagesText) {
+      if (pagesText.includes("-")) {
+        let parts = pagesText.split("-");
+        let start = parseInt(parts[0]);
+        let end = parseInt(parts[1]);
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          pagesToPrint = end - start + 1;
+        }
+      } else if (!isNaN(parseInt(pagesText))) {
+        pagesToPrint = parseInt(pagesText);
+      }
+    }
+
+    let cost = pagesToPrint * copies * 1;
+    updateUpiLink(cost);
+
+    printPagesSpan.innerText = pagesToPrint;
+    costSpan.innerText = cost;
+
+    // Send values to the backend
+    pagesPrintedInput.value = pagesToPrint;
+    costInput.value = cost;
+  }
+
+  pagesInput.addEventListener("input", calculateCost);
+  copiesInput.addEventListener("input", calculateCost);
+</script>
+
+<script>
+function updateUpiLink(amount) {
+    const upiId = "{{ upi_id }}";
+    const name = "{{ upi_name }}";
+    const link = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`;
+    document.getElementById("upiLink").href = link;
+}
+</script>
+
+</body>
+</html>

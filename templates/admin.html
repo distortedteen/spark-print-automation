@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SPARK | Admin Logs</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+<div class="admin-container">
+
+  <div class="admin-header">
+    <div>
+      <h1>SPARK Admin Dashboard</h1>
+      <p class="admin-subtitle">NFSU-TC Print Logbook</p>
+    </div>
+
+    <div class="admin-actions">
+      <a href="/export_csv" class="btn btn-success">Export CSV</a>
+      <a href="/admin_logout" class="btn btn-danger">Logout</a>
+    </div>
+  </div>
+
+  <div class="queue-indicator">
+    Current Queue: 
+    <strong>{{ rows|selectattr(10, 'equalto', 'Queued')|list|length }}</strong> Jobs
+  </div>
+
+<div class="summary-box">
+  <div class="summary-item">
+    <strong>Total Print Jobs Today</strong><br>
+    {{ total_jobs }}
+  </div>
+
+  <div class="summary-item">
+    <strong>Total Pages Printed Today</strong><br>
+    {{ total_pages }}
+  </div>
+
+  <div class="summary-item">
+    <strong>Total Amount Collected</strong><br>
+    ₹{{ total_amount }}
+  </div>
+</div>
+
+<div class="filter-bar">
+  <a href="/admin" class="filter-btn {% if not current_filter %}active{% endif %}">All</a>
+  <a href="/admin?status=Pending" class="filter-btn pending {% if current_filter == 'Pending' %}active{% endif %}">Pending</a>
+  <a href="/admin?status=Paid" class="filter-btn paid {% if current_filter == 'Paid' %}active{% endif %}">Paid</a>
+</div>
+
+<div class="table-wrapper">
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Student Name</th>
+        <th>Course</th>
+        <th>File</th>
+        <th>Pages</th>
+        <th>Copies</th>
+        <th>Amount (₹)</th>
+        <th>Token</th>
+        <th>Print Status</th>
+        <th>Status</th>
+        <th>Action</th>
+        <th>Date & Time</th>
+    </tr>
+
+
+  {% for r in rows %}
+  <tr>
+    <td>{{ r[0] }}</td>  <!-- ID -->
+    <td>{{ r[1] }}</td>  <!-- Student Name -->
+    <td>{{ r[2] }}</td>  <!-- Course -->
+    <td>{{ r[3] }}</td>  <!-- File -->
+    <td>{{ r[4] }}</td>  <!-- Pages -->
+    <td>{{ r[5] }}</td>  <!-- Copies -->
+    <td>₹{{ r[6] }}</td> <!-- Amount -->
+
+    <!-- Token Number -->
+   <td class="token-cell">
+      {% if r[9] %}
+          <span class="token-number">{{ r[9] }}</span>
+      {% else %}
+          —
+      {% endif %}
+   </td>
+
+    <!-- Print Status -->
+    <td class="print status">
+        {% if r[10] == "Queued" %}
+            <span class="status queued">Queued</span>
+        {% elif r[10] == "Printing" %}
+            <span class="status printing">Printing</span>
+        {% elif r[10] == "Completed" %}
+            <span class="status completed">Completed</span>
+        {% else %}
+          <span style="color: gray;">—</span>
+        {% endif %}
+    </td>
+
+    <!-- Payment Status -->
+    <td class="payment status">
+        {% if r[8] == "Paid" %}
+            <span class="status paid">Paid</span>
+        {% else %}
+            <span class="status pending">Pending</span>
+        {% endif %}
+    </td>
+
+    <!-- Action -->
+    <td>
+        {% if r[8] != "Paid" %}
+            <a href="/mark_paid/{{ r[0] }}" class="action-btn">Confirm</a>
+        {% else %}
+            —
+        {% endif %}
+    </td>
+
+    <!-- Timestamp -->
+    <td>{{ r[7] }}</td>
+  </tr>
+  {% endfor %}
+
+</table>
+</div>
+
+</body>
+</html>

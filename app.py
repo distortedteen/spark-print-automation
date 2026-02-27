@@ -14,9 +14,9 @@ def allowed_file(filename):
     
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 
-ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
-UPI_ID = "yourupi@bank"
-UPI_NAME = "NFSU Print Service"
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")  #enter the encrypted hash of the login password.
+UPI_ID = "yourupi@bank" #enter UPI address pf the receeiver
+UPI_NAME = "NFSU Print Service"  #upi name
 
 # Ensure uploads folder exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -30,13 +30,13 @@ def index():
 
 @app.route("/print", methods=["POST"])
 def print_file():
-    # Get form data
+    # get form data
     student_name = request.form["student_name"]
     course = request.form["course"]
     copies = int(request.form["copies"])
     pages_input = request.form["pages"]
 
-    # Handle file upload
+    # handle file upload
     file = request.files["file"]
 
     if not allowed_file(file.filename):

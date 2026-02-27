@@ -21,14 +21,26 @@ Printing: CUPS (Linux)
 
 ## Setup Instructions
 
-1. Install dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/distortedteen/spark-print-automation.git
+   ```
+   
+3. Navigate into the project directory:
+   ```bash
+   cd spark-print-automation
+   ```
+   
+5. Install dependencies:
+   ```bash
    pip install -r requirements.txt
-
-2. Run the application:
-   python app.py
-
-3. Open in browser:
-   http://localhost:5000
+   ```
+7. Run the application in terminal:
+   ```bash
+   python3 app.py
+   ```
+9. Access the application locally at:
+   http://127.0.0.1:5000
 
 ## Deployment
 

@@ -12,6 +12,10 @@ SPARK is a campus printing automation system designed to digitize and streamline
 - CSV export for auditing
 - Canon imageRUNNER 2925 integration via CUPS
 
+## Project Screenshots
+
+![SPARK Dashboard](Screenshots/SPARK_main_dashboard.png)
+
 ## Tech Stack
 
 Frontend: HTML, CSS, JavaScript  

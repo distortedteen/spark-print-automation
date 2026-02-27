@@ -16,7 +16,7 @@ SPARK is a campus printing automation system designed to digitize and streamline
 
 *1. SPARK Main Dashboard*
 
-![SPARK Dashboard](Screenshots/SPARK_main_dashboard.png)
+![SPARK Dashboard](Screenshots/SPARK_main_dashboard1.png)
 
 *2. SPARK Admin Login*
 

@@ -1,14 +1,20 @@
 from flask import Flask, request, render_template
 import os, sqlite3, datetime, subprocess
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask import session, redirect, url_for
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
-app.secret_key = "qprint-secret-key"
 
-ADMIN_PASSWORD_HASH = "scrypt:32768:8:1$MKAnYXLn3rJA7ojs$eca52d2425b38dee8c50e5a1e9d63f8262d3bd78acff937fccceed0de16921be67246dc7d66638d56e1e4e09c5d511f95310c026c22747e3633e5ff18f14b6d5"
+ALLOWED_EXTENSIONS = {"pdf"}
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
 UPI_ID = "yourupi@bank"
 UPI_NAME = "NFSU Print Service"
 
@@ -32,7 +38,14 @@ def print_file():
 
     # Handle file upload
     file = request.files["file"]
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+
+    if not allowed_file(file.filename):
+        return "Only PDF files are allowed.", 400
+
+    from werkzeug.utils import secure_filename
+    filename = secure_filename(file.filename)
+
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
     pages_printed = 0
@@ -73,7 +86,7 @@ def print_file():
     """, (
         student_name,
         course,
-        file.filename,
+        filename,
         pages_printed,
         copies,
         cost,
@@ -118,7 +131,7 @@ def process_queue():
             "-d", "canon2925",
             "-n", str(copies),
             os.path.join(UPLOAD_FOLDER, filename)
-        ])
+        ], timeout=30)
 
         # Mark as Completed
         c.execute("UPDATE logs SET print_status='Completed' WHERE id=?", (job_id,))
@@ -246,5 +259,9 @@ def admin_login():
 def admin_logout():
     session.pop("admin_logged_in", None)
     return redirect("/admin_login")
+
+@app.errorhandler(500)
+def internal_error(error):
+    return "Internal Server Error", 500
 
 app.run(host="0.0.0.0", port=5000)
